@@ -1,0 +1,45 @@
+{
+  "appliance_version": 1,
+  "name": "ONIE-kvm_x86_64",
+  "category": "guest",
+  "description": "Open Network Install Environment (ONIE) for x86_64, built from the opencomputeproject/onie 'kvm_x86_64' emulation target. Boots ONIE, then discovers and installs a NOS installer over the network via DHCP/HTTP.",
+  "vendor_name": "Open Compute Project",
+  "vendor_url": "https://opencomputeproject.github.io/onie/",
+  "product_name": "ONIE",
+  "product_url": "https://github.com/opencomputeproject/onie",
+  "registry_version": 4,
+  "status": "stable",
+  "maintainer": "unmaintained",
+  "maintainer_email": "noreply@example.com",
+  "usage": "Boots ONIE in installer-discovery mode. Provide DHCP + an HTTP-hosted NOS installer on the connected management LAN (see provision/setup-provisioning.sh). ONIE probes the DHCP server on port 80 for 'onie-installer*' files and honours DHCP option 114. The node has 1 management port (adapter 0) and 8 data ports (adapters 1-8). Console is serial over telnet.",
+  "qemu": {
+    "adapter_type": "e1000",
+    "adapters": __ADAPTERS__,
+    "ram": __RAM__,
+    "cpus": 1,
+    "hda_disk_interface": "virtio",
+    "arch": "x86_64",
+    "console_type": "telnet",
+    "boot_priority": "c",
+    "kvm": "allow",
+    "options": "-nographic"
+  },
+  "images": [
+    {
+      "filename": "onie-kvm_x86_64.qcow2",
+      "version": "1.0",
+      "md5sum": "__MD5__",
+      "filesize": __SIZE__,
+      "download_url": "",
+      "direct_download_url": ""
+    }
+  ],
+  "versions": [
+    {
+      "name": "1.0",
+      "images": {
+        "hda_disk_image": "onie-kvm_x86_64.qcow2"
+      }
+    }
+  ]
+}

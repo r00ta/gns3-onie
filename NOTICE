@@ -1,0 +1,23 @@
+NOTICE
+======
+
+This repository contains original automation (the build, GNS3, provisioning and
+test scripts) together with vendored third-party components.
+
+Third-party components
+----------------------
+
+The files under `sonic-ref/` are unmodified, pinned copies of packaging scripts
+from the following upstream projects and remain licensed under their original
+terms (GPL-2.0), with their copyright headers intact:
+
+  * Open Compute Project ONIE - https://github.com/opencomputeproject/onie
+  * SONiC (sonic-buildimage)  - https://github.com/sonic-net/sonic-buildimage
+
+The ONIE appliance disk image produced by the scripts in `build/` is built from
+the ONIE source tree (GPL-2.0 and other licenses; see the ONIE repository). The
+SONiC network operating system installed onto the appliance is distributed under
+its own licenses; see the SONiC project for details.
+
+Original work in this repository (everything except `sonic-ref/`) is provided
+under the terms in the `LICENSE` file.
