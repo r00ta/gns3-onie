@@ -20,13 +20,9 @@ RECOVERY="$IMAGES/onie-recovery-x86_64-${ONIE_MACHINE:-kvm_x86_64}-r0.iso"
 [ -f "$RECOVERY" ] && sudo install -o gns3 -g gns3 -m 644 "$RECOVERY" "$GNS3_IMG_DIR/$(basename "$RECOVERY")"
 
 # 2. Render the .gns3a descriptor with the real checksum + size.
-MD5=$(md5sum "$QCOW2" | awk '{print $1}')
-SIZE=$(stat -c%s "$QCOW2")
-sed -e "s/__MD5__/$MD5/" -e "s/__SIZE__/$SIZE/" \
-    -e "s/__RAM__/${APPLIANCE_RAM:-8192}/" \
-    -e "s/__ADAPTERS__/${APPLIANCE_ADAPTERS:-9}/" \
-    "$HERE/ONIE-kvm_x86_64.gns3a.template" > "$HERE/ONIE-kvm_x86_64.gns3a"
-echo "Wrote $HERE/ONIE-kvm_x86_64.gns3a (md5=$MD5 size=$SIZE)"
+GNS3A_OUT="$HERE/ONIE-kvm_x86_64.gns3a" QCOW2="$QCOW2" \
+    bash "$HERE/../appliance/render-gns3a.sh" >/dev/null
+echo "Wrote $HERE/ONIE-kvm_x86_64.gns3a"
 
 # 3. Register the template + build the topology.
 python3 "$HERE/setup-gns3.py"

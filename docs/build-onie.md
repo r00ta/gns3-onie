@@ -3,6 +3,10 @@
 The ONIE `kvm_x86_64` emulation target is built in a reproducible Debian 10
 container so the host toolchain is irrelevant.
 
+> These are the individual steps behind **Generator 1**. To run the whole
+> appliance build (compile → embed ISO → bake disk → render `.gns3a`) in one
+> command, use [`build/make-onie-appliance.sh`](../build/make-onie-appliance.sh).
+
 ## Scripts
 
 | Script | Runs on | Purpose |

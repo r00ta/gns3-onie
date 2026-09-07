@@ -6,13 +6,42 @@
 # platform/) into the self-extracting ONIE installer that ONIE downloads over
 # HTTP and writes to the appliance disk.
 #
-# Prerequisite: the SONiC-OS partition of the image is mounted read-only at
-# $IMG_MNT (see docs/provision-sonic.md for the qemu-nbd mount commands).
+# Two ways to point it at the SONiC-OS partition of a sonic-vs disk image:
+#   * set SONIC_IMG=/path/to/sonic-vs.img[.gz] and the script mounts it for you
+#     (qemu-nbd, read-only) and unmounts on exit; or
+#   * mount it yourself read-only at $IMG_MNT and leave SONIC_IMG unset
+#     (see docs/provision-sonic.md for the manual qemu-nbd commands).
 set -eux
 
 WORK="${WORK:-$HOME/onie-build/sonic-pkg}"
 REF="${REF:-$HOME/onie-build/sonic-ref}"          # install.sh, sharch_body.sh, default_platform.conf, onie-image.conf, onie-mk-demo.sh
 IMG_MNT="${IMG_MNT:-/mnt/sonic}"                    # SONiC-OS partition mounted read-only
+
+# --- optional: auto-mount a sonic-vs image instead of a pre-mounted IMG_MNT ---
+SONIC_IMG="${SONIC_IMG:-}"
+NBD="${NBD:-/dev/nbd0}"
+SONIC_PART="${SONIC_PART:-3}"                       # SONiC-OS partition number
+if [ -n "$SONIC_IMG" ]; then
+    [ -f "$SONIC_IMG" ] || { echo "SONIC_IMG not found: $SONIC_IMG" >&2; exit 1; }
+    RAW="$SONIC_IMG"; TMPRAW=""
+    case "$SONIC_IMG" in
+        *.gz) TMPRAW="$(mktemp --suffix=.img)"; echo "Decompressing $SONIC_IMG ..."
+              zcat "$SONIC_IMG" > "$TMPRAW"; RAW="$TMPRAW";;
+    esac
+    sudo modprobe nbd max_part=16
+    sudo qemu-nbd --disconnect "$NBD" >/dev/null 2>&1 || true
+    sudo qemu-nbd --connect="$NBD" --read-only "$RAW"
+    sudo mkdir -p "$IMG_MNT"
+    for _i in $(seq 1 30); do [ -b "${NBD}p${SONIC_PART}" ] && break; sleep 1; done
+    sudo mount -o ro "${NBD}p${SONIC_PART}" "$IMG_MNT"
+    cleanup_mnt() {
+        sudo umount "$IMG_MNT" 2>/dev/null || true
+        sudo qemu-nbd --disconnect "$NBD" >/dev/null 2>&1 || true
+        [ -n "$TMPRAW" ] && rm -f "$TMPRAW"
+    }
+    trap cleanup_mnt EXIT
+fi
+
 IMAGE_DIR_NAME="$(sudo bash -c "ls -d $IMG_MNT/image-* | xargs -n1 basename")"
 IMAGE_VERSION="${IMAGE_VERSION:-${IMAGE_DIR_NAME#image-}}"
 SRC="$IMG_MNT/$IMAGE_DIR_NAME"

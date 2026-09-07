@@ -22,27 +22,34 @@ inside an installed SONiC disk under `/host/image-<ver>/`:
 | `image-<ver>/docker/` | `dockerfs.tar.gz` (shipped alongside the payload) |
 
 `sonic/build-sonic-installer.sh` mounts the image, rebuilds those artifacts, and
-runs `onie-mk-demo.sh` to emit `sonic-vs.bin`. The upstream packaging scripts are
-vendored in `sonic-ref/` (see its README for provenance).
+runs `onie-mk-demo.sh` to emit `sonic-vs.bin`. Point it at a `sonic-vs` image
+with `SONIC_IMG` and it handles the mount/unmount itself. The upstream packaging
+scripts are vendored in `sonic-ref/` (see its README for provenance).
 
 ## Procedure
 
 ```bash
-# 1. Mount the SONiC-OS partition of the direct-boot image read-only
+# 1. Build the ONIE installer straight from a sonic-vs image (auto-mounts it).
+SONIC_IMG=~/onie-build/sonic-vs.img.gz \
+    bash sonic/build-sonic-installer.sh   # -> ~/onie-build/sonic-pkg/target/sonic-vs.bin
+
+# 2. Publish it on the provisioning HTTP server (replaces the demo installer)
+bash sonic/push-sonic-installer.sh
+
+# 3. Reboot the ONIE node to install SONiC
+WATCH_SECS=600 bash gns3/test-provisioning.sh
+```
+
+`SONIC_IMG` may be a raw `.img` or a gzipped `.img.gz`; the SONiC-OS partition
+number defaults to `3` (`SONIC_PART`). If you would rather mount the image
+yourself, leave `SONIC_IMG` unset and mount it read-only at `$IMG_MNT`
+(default `/mnt/sonic`) beforehand:
+
+```bash
 sudo modprobe nbd max_part=16
 sudo qemu-nbd --connect=/dev/nbd0 --read-only "$SONIC_IMG"
 sudo mkdir -p /mnt/sonic && sudo mount -o ro /dev/nbd0p3 /mnt/sonic
-
-# 2. Build the ONIE installer from the payload
-bash sonic/build-sonic-installer.sh        # -> ~/onie-build/sonic-pkg/target/sonic-vs.bin
-
-# 3. Publish it on the provisioning HTTP server (replaces the demo installer)
-bash sonic/push-sonic-installer.sh
-
-# 4. Reboot the ONIE node to install SONiC
-WATCH_SECS=600 bash gns3/test-provisioning.sh
-
-# 5. Clean up the mount
+bash sonic/build-sonic-installer.sh
 sudo umount /mnt/sonic && sudo qemu-nbd --disconnect /dev/nbd0
 ```
 
