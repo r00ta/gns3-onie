@@ -6,6 +6,7 @@ environment, so nothing about the target project is hard-coded.
 """
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 
@@ -28,6 +29,7 @@ def load_config():
                     continue
                 key, val = line.split("=", 1)
                 key, val = key.strip(), val.strip().strip('"').strip("'")
+                val = re.sub(r"\s+#.*$", "", val).strip().strip('"').strip("'")
                 if "$" in val:
                     continue
                 os.environ.setdefault(key, val)

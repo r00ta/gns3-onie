@@ -1,0 +1,18 @@
+# Local configuration (copy from config.env.example)
+config.env
+
+# Generated GNS3 appliance descriptor (rendered from the .template)
+gns3/ONIE-kvm_x86_64.gns3a
+
+# Build artifacts / large binaries (built on the GNS3 host, never committed)
+*.qcow2
+*.img
+*.img.gz
+*.iso
+*.bin
+*.log
+
+# Editor / OS noise
+*.swp
+.DS_Store
+__pycache__/

@@ -128,6 +128,12 @@ This publishes the qcow2 into the GNS3 image store, renders the `.gns3a`
 descriptor, registers the **ONIE-kvm_x86_64** template (1 management + 8 data
 ports, 8 GB RAM), and builds the `NAT — server — onie-switch` base topology.
 
+Alternatively, import the appliance through the GNS3 GUI: copy
+`onie-kvm_x86_64.qcow2` into the GNS3 image store and use
+*File → Import appliance* on `gns3/ONIE-kvm_x86_64.gns3a` (also shipped in
+the release bundle as `artifacts/onie-kvm_x86_64.gns3a`). The descriptor is
+validated against the official gns3-registry `appliance_v6` schema.
+
 ### 4. Configure the provisioning server
 
 ```bash
@@ -193,8 +199,10 @@ equivalents: [`docs/switch-validation.md`](docs/switch-validation.md).
 
 ## Troubleshooting
 
-* **No appliance in the GNS3 GUI** — the template is registered via the API;
-  refresh the GNS3 client or check *Edit → Preferences → QEMU VMs*.
+* **No appliance in the GNS3 GUI** — `deploy-appliance.sh` registers the
+  template via the API, so it appears under *Edit → Preferences → QEMU VMs*
+  (refresh the client) rather than the appliance list. To get a GUI appliance
+  entry instead, import `gns3/ONIE-kvm_x86_64.gns3a` via *File → Import appliance*.
 * **ONIE never installs** — confirm the server VM has DHCP/HTTP up
   (`systemctl status dnsmasq onie-http`) and that
   `curl http://<LAN_IP>/onie-installer` works from the server.

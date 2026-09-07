@@ -15,7 +15,7 @@ WEBROOT="${WEBROOT:-/srv/onie}"
 [ -f "$BIN" ] || { echo "Missing installer: $BIN" >&2; exit 1; }
 command -v sshpass >/dev/null || sudo apt-get install -y sshpass
 
-IP="$(wait_server_ip)"
+IP="${SERVER_IP:-$(wait_server_ip)}"
 echo "Server VM IP: $IP"
 run_ssh() { sshpass -p "$PASS" ssh $SSH_OPTS "$USER@$IP" "$@"; }
 

@@ -15,8 +15,8 @@
   "port_name_format": "eth{0}",
   "qemu": {
     "adapter_type": "e1000",
-    "adapters": __ADAPTERS__,
-    "ram": __RAM__,
+    "adapters": 9,
+    "ram": 8192,
     "cpus": 1,
     "hda_disk_interface": "virtio",
     "arch": "x86_64",
@@ -29,8 +29,8 @@
     {
       "filename": "onie-kvm_x86_64.qcow2",
       "version": "1.0",
-      "md5sum": "__MD5__",
-      "filesize": __SIZE__,
+      "md5sum": "67a9b3767d57f00ccf2e7b494e5c16d0",
+      "filesize": 26673152,
       "download_url": "",
       "direct_download_url": ""
     }
