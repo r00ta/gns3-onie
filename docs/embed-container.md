@@ -51,11 +51,25 @@ IMAGE=my-agent:1.0 NAME=my-agent \
     bash sonic/embed-container.sh
 ```
 
+If your container needs specific `docker run` flags (host networking, bind
+mounts, capabilities, …), pass them via `RUN_OPTS`; they are baked into the
+generated `start.sh`:
+
+```bash
+CONTEXT=/path/to/your/agent IMAGE=my-agent:1.0 NAME=my-agent \
+RUN_OPTS="--network host -v /var/run/redis:/var/run/redis -v /etc/sonic:/etc/sonic:ro" \
+    bash sonic/embed-container.sh
+```
+
 Guidelines for an embeddable image:
 
-- Base it on a small image (e.g. `busybox`, `alpine`); the appliance has no
-  internet access, so every layer must be inside the saved tarball.
-- The entrypoint should be a long-running foreground process.
+- Base it on a small image (e.g. `busybox`, `alpine`, `distroless`); the
+  appliance has no internet access, so every layer must be inside the saved
+  tarball.
+- The entrypoint should be a long-running foreground process. If it depends on
+  SONiC services (e.g. the redis CONFIG_DB/STATE_DB socket) that come up after
+  Docker, keep `--restart unless-stopped` (the default) so it retries until they
+  are ready.
 
 ## Verifying on the switch
 

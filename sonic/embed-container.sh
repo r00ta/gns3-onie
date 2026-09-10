@@ -17,6 +17,7 @@
 #   CONTEXT     docker build context      [sonic/embed-container/hello-world]
 #   IMAGE       image name:tag            [hello-sonic:latest]
 #   NAME        container + service name  [hello-sonic]
+#   RUN_OPTS    extra "docker run" flags  [empty] (e.g. "--network host -v /a:/a")
 #   INSTALLER   target installer to embed [$HOME/onie-build/sonic-pkg/target/sonic-vs.bin]
 #   OUT         output installer path     [<INSTALLER without .bin>-<NAME>.bin]
 set -euo pipefail
@@ -27,6 +28,7 @@ REPO="$(cd "$HERE/.." && pwd)"
 CONTEXT="${1:-${CONTEXT:-$HERE/embed-container/hello-world}}"
 IMAGE="${IMAGE:-hello-sonic:latest}"
 NAME="${NAME:-hello-sonic}"
+RUN_OPTS="${RUN_OPTS:-}"     # extra "docker run" options (e.g. --network host -v ...)
 INSTALLER="${INSTALLER:-$HOME/onie-build/sonic-pkg/target/sonic-vs.bin}"
 OUT="${OUT:-${INSTALLER%.bin}-$NAME.bin}"
 SHARCH="${SHARCH:-$REPO/sonic-ref/sharch_body.sh}"
@@ -46,9 +48,15 @@ BUILD="$(mktemp -d)"
 cleanup() { sudo rm -rf "$BUILD"; }
 trap cleanup EXIT
 
-# --- 1. build the container and save it (legacy format for older dockerd) ----
+# --- 1. build the container and save it (format older dockerd can load) ------
 echo "==> Building image $IMAGE from $CONTEXT"
-DOCKER_BUILDKIT=0 $DOCKER build -t "$IMAGE" "$CONTEXT"
+if $DOCKER buildx version >/dev/null 2>&1; then
+    # --provenance=false + docker exporter avoids the attestation manifest that
+    # SONiC's Docker Engine cannot "docker load".
+    $DOCKER buildx build --load --provenance=false -t "$IMAGE" "$CONTEXT"
+else
+    DOCKER_BUILDKIT=0 $DOCKER build -t "$IMAGE" "$CONTEXT"
+fi
 echo "==> Saving image to tarball"
 $DOCKER save "$IMAGE" -o "$BUILD/image.tar"
 sudo chown "$USER":"$USER" "$BUILD/image.tar"
@@ -81,7 +89,7 @@ IMG=$IMAGE
 TAR=$DEST/$NAME.tar
 /usr/bin/docker image inspect "\$IMG" >/dev/null 2>&1 || /usr/bin/docker load -i "\$TAR"
 /usr/bin/docker rm -f $NAME >/dev/null 2>&1 || true
-exec /usr/bin/docker run -d --name $NAME --restart unless-stopped "\$IMG"
+exec /usr/bin/docker run -d --name $NAME --restart unless-stopped $RUN_OPTS "\$IMG"
 EOF
 sudo chmod +x "$R$DEST/start.sh"
 
