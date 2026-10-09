@@ -45,6 +45,11 @@ read_conf_file() {
 
 set -e
 
+# The wrapper/ONIE run can inherit a restrictive umask (077); that made files this
+# installer creates on the NOS partition (e.g. /host/machine.conf) root-only, so the
+# non-root `admin` user's SONiC CLIs hit PermissionError. Force standard perms.
+umask 022
+
 if [ -d "/etc/sonic" ]; then
     echo "Installing SONiC in SONiC"
     install_env="sonic"
@@ -253,6 +258,8 @@ if [ "$install_env" = "onie" ]; then
     else
         cp /etc/machine.conf $demo_mnt
     fi
+    # machine.conf must be world-readable: non-root SONiC CLIs read it on every call.
+    chmod 0644 $demo_mnt/machine.conf
 fi
 
 echo "ONIE_IMAGE_PART_SIZE=$demo_part_size"
