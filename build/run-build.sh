@@ -12,6 +12,11 @@ if [ ! -d "$ONIE_DIR" ]; then
   exit 1
 fi
 
+# Stage the crosstool-NG companion tarballs into ONIE's download cache first.
+# Unlike ONIE's own packages, xtools.make fetches these from the OCP mirror
+# ONLY (no upstream fallback), so a mirror outage otherwise aborts the build.
+ONIE_DIR="$ONIE_DIR" bash "$HERE/preseed-downloads.sh"
+
 # Build the build-environment image, matching the host user's UID/GID so the
 # bind-mounted source tree is writable inside the container.
 sudo docker build -t "$IMAGE" \
